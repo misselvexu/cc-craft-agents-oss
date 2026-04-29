@@ -45,6 +45,14 @@ import {
 } from '../mode-manager.ts';
 import { permissionsConfigCache, type PermissionsContext } from '../permissions-config.ts';
 import type { PrerequisiteCheckResult } from './prerequisite-manager.ts';
+import {
+  checkCraftAgentAccess,
+  extractCraftAgentPathsFromBash,
+  normalizeAbsolutePath,
+  type GuardDecision,
+  type GuardOperation,
+  type SandboxContext,
+} from './file-access-guard.ts';
 
 // ============================================================
 // TYPES
@@ -679,6 +687,79 @@ const FILE_WRITE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit', 'NotebookEdit'])
  *
  * @returns A discriminated union that the agent translates to its SDK format
  */
+/**
+ * Tool-name → file-access semantics. Used by the sandbox guard step.
+ * Maps each file-touching tool to:
+ *   - the input field that carries the path
+ *   - the operation kind (read/write/list)
+ */
+const SANDBOX_TOOL_MAP: Record<string, { field: string; op: GuardOperation }> = {
+  Read: { field: 'file_path', op: 'read' },
+  Write: { field: 'file_path', op: 'write' },
+  Edit: { field: 'file_path', op: 'write' },
+  MultiEdit: { field: 'file_path', op: 'write' },
+  NotebookEdit: { field: 'notebook_path', op: 'write' },
+  Glob: { field: 'path', op: 'list' },
+  Grep: { field: 'path', op: 'read' },
+};
+
+/**
+ * Step 5a2 of the PreToolUse pipeline — block agent access to sandboxed
+ * paths under ~/.craft-agent/.
+ *
+ * - File-path tools (Read/Write/Edit/MultiEdit/NotebookEdit/Glob/Grep):
+ *   normalize the path field and check via {@link checkCraftAgentAccess}.
+ * - Bash: best-effort regex extraction of ~/.craft-agent/ paths from the
+ *   command and block if any extracted path violates the sandbox.
+ * - Other tools (MCP, etc.): not handled here. MCP source tools are
+ *   responsible for their own security; the guard's scope is local file ops.
+ *
+ * Returns { allowed: true } when the call may proceed.
+ */
+function checkSandboxAccess(
+  toolName: string,
+  input: Record<string, unknown>,
+  ctx: SandboxContext,
+  cwd: string,
+  onDebug?: (msg: string) => void,
+): GuardDecision {
+  // File-path tools
+  const mapping = SANDBOX_TOOL_MAP[toolName];
+  if (mapping) {
+    const raw = input[mapping.field];
+    if (typeof raw !== 'string' || !raw) {
+      // No path provided (e.g. Glob/Grep without an explicit path uses cwd) — allow.
+      return { allowed: true };
+    }
+    const abs = normalizeAbsolutePath(raw, cwd);
+    const decision = checkCraftAgentAccess(abs, ctx, mapping.op);
+    if (!decision.allowed) {
+      onDebug?.(`[sandbox] block ${toolName} on ${raw}: ${decision.debug ?? 'sandboxed'}`);
+    }
+    return decision;
+  }
+
+  // Bash — extract paths, check each
+  if (toolName === 'Bash') {
+    const command = typeof input.command === 'string' ? input.command : '';
+    if (!command) return { allowed: true };
+    const paths = extractCraftAgentPathsFromBash(command);
+    for (const p of paths) {
+      const abs = normalizeAbsolutePath(p, cwd);
+      // Conservatively treat all Bash access as 'read' — even commands like
+      // `> file` (write redirection) are caught because the redirected path
+      // appears in the command string. The deny path is the same.
+      const decision = checkCraftAgentAccess(abs, ctx, 'read');
+      if (!decision.allowed) {
+        onDebug?.(`[sandbox] block Bash on extracted path "${p}": ${decision.debug ?? 'sandboxed'}`);
+        return decision;
+      }
+    }
+  }
+
+  return { allowed: true };
+}
+
 function withPermissionModeContext(reason: string, sessionId: string, effectiveMode: PermissionMode): string {
   if (reason.includes('Effective mode:')) return reason;
 
@@ -802,6 +883,20 @@ export function runPreToolUseChecks(ctx: PreToolUseInput): PreToolUseCheckResult
   if (pathResult.modified) {
     currentInput = pathResult.input;
     wasModified = true;
+  }
+
+  // 5a2. SANDBOX GUARD — block ~/.craft-agent/ access outside per-session allowlist.
+  // Independent of PermissionMode: runs equally in safe / ask / allow-all.
+  // See file-access-guard.ts and docs/analysis/sandbox-isolation-bug.md.
+  const sandboxResult = checkSandboxAccess(
+    toolName,
+    currentInput,
+    { workspaceId, workspaceRootPath, sessionId },
+    workingDirectory ?? workspaceRootPath,
+    onDebug,
+  );
+  if (!sandboxResult.allowed) {
+    return { type: 'block', reason: sandboxResult.reason ?? 'Sandboxed path access denied.' };
   }
 
   // 5b. Config-domain Bash guard (block direct labels/automations path operations unless using craft-agent)
