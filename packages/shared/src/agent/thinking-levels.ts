@@ -4,18 +4,32 @@
  * Six-tier thinking system for extended reasoning:
  * - OFF: No extended thinking (disabled)
  * - Low: Light reasoning, faster responses
- * - Medium: Balanced speed and reasoning (default)
+ * - Medium: Balanced speed and reasoning
  * - High: Deep reasoning for complex tasks
- * - XHigh: Extra-high reasoning — Anthropic's recommended level for Opus 4.7 agentic/coding work
- * - Max: Maximum effort reasoning
+ * - XHigh: Extra-high reasoning — Anthropic's recommended level for Opus 4.7
+ *   agentic/coding work; only Opus 4.7 actually supports it
+ * - Max: Maximum effort reasoning (Opus 4.6/4.7)
  *
- * Session-level setting with workspace defaults.
+ * Per-model defaults are defined in
+ * packages/shared/src/agent/profiles/model-profiles.ts
+ * (e.g. Opus 4.7 -> 'xhigh', Opus 4.6 -> 'medium', Haiku -> 'low'). The legacy
+ * DEFAULT_THINKING_LEVEL constant below is the floor when a model has no
+ * recommendation in the profile registry.
  *
- * Provider mappings:
- * - Anthropic: adaptive thinking + effort levels (Opus 4.7+). On models that
- *   don't accept `xhigh`, the Anthropic SDK silently falls back to `high`.
- * - Pi/OpenAI: reasoning_effort via Pi SDK levels. Pi's ceiling is `xhigh`,
- *   so Craft's `max` saturates there.
+ * How thinking levels are translated for each backend:
+ * - Anthropic adaptive (Opus 4.6+, Sonnet 4.6, Mythos): the level maps to an
+ *   `effort` dial. Native Anthropic API silently downgrades unsupported effort
+ *   levels (e.g. xhigh -> high on 4.6); third-party gateways do NOT make that
+ *   guarantee, so the resolver clips client-side too.
+ * - Anthropic enabled-budget (Haiku 4.5): the level maps to a `budgetTokens`
+ *   value in the `thinking: { type: 'enabled', budgetTokens: N }` shape. The
+ *   deprecated `maxThinkingTokens` form is no longer used.
+ * - Pi / OpenAI / others: reasoning_effort via Pi SDK levels (low/medium/high
+ *   ceiling); Craft's xhigh / max saturate to high.
+ *
+ * The complete model x provider matrix is owned by the capability resolver in
+ * packages/shared/src/agent/profiles/resolver.ts and documented in
+ * docs/analysis/opus-4-7-thinking-bugs.md.
  */
 
 /**
