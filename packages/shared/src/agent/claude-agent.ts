@@ -960,17 +960,9 @@ export class ClaudeAgent extends BaseAgent {
               type: 'preset' as const,
               preset: 'claude_code' as const,
               // Working directory included for monorepo context file discovery
+              // Identity FIRST so it sits right after the SDK preset and
+              // doesn't get buried at the end of a 30k+ token system prompt.
               append:
-                getSystemPrompt(
-                  this.pinnedPreferencesPrompt ?? undefined,
-                  this.config.debugMode,
-                  this.workspaceRootPath,
-                  this.config.session?.workingDirectory,
-                  undefined, // preset
-                  undefined, // backendName
-                  this.pinnedIncludeCoAuthoredBy ?? undefined,
-                ) +
-                '\n\n' +
                 buildSessionIdentityBlock({
                   sessionId,
                   modelId: this._model,
@@ -980,7 +972,17 @@ export class ClaudeAgent extends BaseAgent {
                   protocol: providerProfile.protocol,
                   thinkingLevel: this._thinkingLevel,
                   permissionMode: this.permissionManager.getPermissionMode(),
-                }),
+                }) +
+                '\n\n' +
+                getSystemPrompt(
+                  this.pinnedPreferencesPrompt ?? undefined,
+                  this.config.debugMode,
+                  this.workspaceRootPath,
+                  this.config.session?.workingDirectory,
+                  undefined, // preset
+                  undefined, // backendName
+                  this.pinnedIncludeCoAuthoredBy ?? undefined,
+                ),
             },
         // Use sdkCwd for SDK session storage - this is set once at session creation and never changes.
         // This ensures SDK can always find session transcripts regardless of workingDirectory changes.

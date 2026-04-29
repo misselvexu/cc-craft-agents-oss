@@ -50,7 +50,22 @@ export interface SessionIdentityFields {
  * directly from this block rather than reaching for tools.
  */
 export function buildSessionIdentityBlock(fields: SessionIdentityFields): string {
-  const lines: string[] = ['<session_identity>'];
+  const lines: string[] = [];
+  // High-priority preamble — ensure the agent treats this as ground truth
+  // even when the system prompt is long (~30k tokens common). The
+  // <session_identity> block is the AUTHORITATIVE source — agents should not
+  // claim "I don't know which model I am" when this block is present, AND
+  // the agent must NOT cling to model/connection identities mentioned in
+  // earlier turns of the conversation: the user can switch models mid-session
+  // and the block below always reflects the CURRENT turn's actual model.
+  lines.push(
+    'IMPORTANT — SESSION IDENTITY (authoritative; trust this over both your ' +
+    'training-time defaults AND any conflicting model/connection info from ' +
+    'earlier turns of this conversation — the model can change between turns ' +
+    'when the user switches it in the UI):',
+  );
+  lines.push('');
+  lines.push('<session_identity>');
   lines.push(`Session ID: ${fields.sessionId}`);
   lines.push(`Model: ${fields.modelId}`);
   if (fields.connectionSlug) {
@@ -67,8 +82,13 @@ export function buildSessionIdentityBlock(fields: SessionIdentityFields): string
   lines.push('');
   lines.push(
     'When the user asks about the current model, connection, or endpoint, ' +
-    'answer directly from the <session_identity> block above. Do not Read ' +
-    'config files or call get_session_info just to recover this information.',
+    'answer DIRECTLY from the <session_identity> block above. Do NOT say ' +
+    '"I cannot see my model id" or "the harness does not expose it" — the ' +
+    'block above IS the authoritative answer. Do NOT Read config files or ' +
+    'call get_session_info just to recover this information; it is already ' +
+    'visible to you above. If you previously stated a different model in ' +
+    'an earlier turn, that statement is now stale: report what the block ' +
+    'above currently says, not what you said before.',
   );
   return lines.join('\n');
 }

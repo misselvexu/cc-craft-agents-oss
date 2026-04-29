@@ -1884,7 +1884,16 @@ export class PiAgent extends BaseAgent {
         thinkingLevel: this._thinkingLevel,
         permissionMode: this.permissionManager.getPermissionMode(),
       });
-      const systemPrompt = baseSystemPrompt + '\n\n' + identityBlock;
+      // Put identity at the START so it's not lost in the middle of a 30k+
+      // token system prompt. The LLM's attention is strongest at the head
+      // and tail; the head wins on session-stable info like model + connection.
+      const systemPrompt = identityBlock + '\n\n' + baseSystemPrompt;
+      this.debug(
+        `[chat] systemPrompt assembled: total=${systemPrompt.length} ` +
+        `base=${baseSystemPrompt.length} identity=${identityBlock.length} ` +
+        `(connectionSlug=${connectionSlug ?? '<none>'} model=${this._model})`,
+      );
+      this.debug(`[chat] identity block:\n${identityBlock}`);
 
       // Build context from sources
       const sourceContext = this.sourceManager.formatSourceState();
