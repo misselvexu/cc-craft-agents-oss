@@ -145,8 +145,15 @@ export function resolveClaudeThinkingOptions(args: {
   }
 
   if (supportsAdaptiveThinking) {
+    // display: 'summarized' is required on Opus 4.7+ to surface visible
+    // thinking tokens in the SSE stream. The API default flipped to
+    // 'omitted' in 4.7, which would otherwise break the renderer's
+    // streaming-thinking UI (empty thinking field, long perceived pause).
+    // On older Claude models the default is already 'summarized', so
+    // setting it explicitly is a safe no-op there.
+    // See docs/analysis/opus-4-7-thinking-bugs.md (Bug J).
     return {
-      thinking: { type: 'adaptive' as const },
+      thinking: { type: 'adaptive' as const, display: 'summarized' as const },
       effort,
     };
   }

@@ -3,7 +3,7 @@ import { resolveClaudeThinkingOptions } from '../claude-agent.ts'
 import { getThinkingTokens } from '../thinking-levels.ts'
 
 describe('resolveClaudeThinkingOptions', () => {
-  it('uses adaptive thinking for true Anthropic backends', () => {
+  it('uses adaptive thinking with display: summarized for true Anthropic backends', () => {
     const result = resolveClaudeThinkingOptions({
       thinkingLevel: 'medium',
       model: 'claude-opus-4-7',
@@ -12,7 +12,7 @@ describe('resolveClaudeThinkingOptions', () => {
     })
 
     expect(result).toEqual({
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       effort: 'medium',
     })
   })
@@ -78,9 +78,27 @@ describe('resolveClaudeThinkingOptions', () => {
     })
 
     expect(result).toEqual({
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       effort: 'xhigh',
     })
+  })
+
+  it('always sets display: summarized on adaptive — non-Opus-4.7 Claude models too', () => {
+    // Sonnet 4.6 and Opus 4.6 default to display=summarized server-side, but
+    // we set it explicitly to keep behaviour consistent and shield against
+    // future API default flips.
+    for (const model of ['claude-sonnet-4-6', 'claude-opus-4-6']) {
+      const result = resolveClaudeThinkingOptions({
+        thinkingLevel: 'high',
+        model,
+        providerType: 'anthropic',
+        minimizeThinking: false,
+      })
+      expect(result).toEqual({
+        thinking: { type: 'adaptive', display: 'summarized' },
+        effort: 'high',
+      })
+    }
   })
 
   it('uses xhigh token budget on Haiku (non-adaptive)', () => {
