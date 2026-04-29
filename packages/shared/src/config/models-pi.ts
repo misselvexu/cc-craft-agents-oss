@@ -151,13 +151,33 @@ const PI_PROVIDER_DISPLAY: Partial<Record<KnownProvider, { label: string; placeh
 
 /**
  * Providers to EXCLUDE from the Pi API key dropdown.
+ *
+ * Two reasons a provider is excluded:
+ * - OAuth-only or SDK-internal: shown via dedicated entry, not the key dropdown
+ *   (github-copilot, openai-codex, google-vertex, google-gemini-cli, google-antigravity)
+ * - UI cleanup (April 2026): hidden to keep the visible provider list to ~12
+ *   mainstream entries. Pi SDK still supports them — they are reachable via the
+ *   custom-endpoint flow if a user really needs them. To re-enable any of these,
+ *   remove the entry here.
+ *   (amazon-bedrock, azure-openai-responses, vercel-ai-gateway, groq, mistral,
+ *    xai, cerebras, huggingface)
  */
 const PI_EXCLUDED_PROVIDERS: Set<string> = new Set([
+  // OAuth-only or SDK-internal
   'github-copilot',
   'openai-codex',
   'google-vertex',
   'google-gemini-cli',
   'google-antigravity',
+  // UI cleanup — hidden but Pi SDK still supports them
+  'amazon-bedrock',
+  'azure-openai-responses',
+  'vercel-ai-gateway',
+  'groq',
+  'mistral',
+  'xai',
+  'cerebras',
+  'huggingface',
 ]);
 
 /** Info for a Pi provider available in the API key flow. */

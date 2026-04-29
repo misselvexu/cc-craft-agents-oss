@@ -301,7 +301,7 @@ For TLS connections (`wss://`), use `--tls-ca <path>` for self-signed certificat
 | `--mode <mode>` | `allow-all` | Permission mode for the session |
 | `--no-cleanup` | `false` | Skip session deletion on exit |
 | `--server-entry <path>` | — | Custom server entry point |
-| `--provider <name>` | `anthropic` | LLM provider (`anthropic`, `openai`, `google`, `openrouter`, `groq`, `mistral`, `xai`, etc.) |
+| `--provider <name>` | `anthropic` | LLM provider: `anthropic`, `openai`, `google`, `openrouter`, `deepseek`, `kimi-coding`, `zai`, `minimax`. For others, use `--base-url` to set up a custom endpoint. |
 | `--model <id>` | (provider default) | Model ID (e.g., `claude-sonnet-4-5-20250929`, `gpt-4o`, `gemini-2.0-flash`) |
 | `--api-key <key>` | — | API key (or `$LLM_API_KEY`, or provider-specific env var) |
 | `--base-url <url>` | — | Custom API endpoint for proxies or self-hosted models |
@@ -472,9 +472,8 @@ Additional providers are supported through the **Claude / Anthropic API Key** co
 | Provider | Endpoint | Notes |
 |----------|----------|-------|
 | **OpenRouter** | `https://openrouter.ai/api` | Access Claude, GPT, Llama, Gemini, and hundreds of other models through a single API key. Use `provider/model-name` format (e.g. `anthropic/claude-opus-4.7`). |
-| **Vercel AI Gateway** | `https://ai-gateway.vercel.sh` | Route requests through Vercel's AI Gateway with built-in observability and caching. |
 | **Ollama** | `http://localhost:11434` | Run open-source models locally. No API key required. |
-| **Custom** | Any URL | Any OpenAI-compatible or Anthropic-compatible endpoint. |
+| **Custom** | Any URL | Any OpenAI-compatible or Anthropic-compatible endpoint (Bedrock, Vercel AI Gateway, Groq, Mistral, etc.). |
 
 ### Architecture
 

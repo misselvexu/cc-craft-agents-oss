@@ -137,7 +137,7 @@ The `run` command is fully self-contained — it spawns a headless server, creat
 
 | Flag | Env Fallback | Default | Description |
 |------|-------------|---------|-------------|
-| `--provider <name>` | `LLM_PROVIDER` | `anthropic` | Provider: `anthropic`, `openai`, `google`, `openrouter`, `groq`, `mistral`, `xai`, etc. |
+| `--provider <name>` | `LLM_PROVIDER` | `anthropic` | Provider: `anthropic`, `openai`, `google`, `openrouter`, `deepseek`, `kimi-coding`, `zai`, `minimax`. For others (Bedrock, Groq, Mistral, etc.), use `--base-url` with `--provider anthropic` or `openai` to set up a custom endpoint. |
 | `--model <id>` | `LLM_MODEL` | (provider default) | Model ID (e.g., `claude-sonnet-4-5-20250929`, `gpt-4o`, `gemini-2.0-flash`) |
 | `--api-key <key>` | `LLM_API_KEY` | (provider env) | API key — also checks provider-specific vars like `$OPENAI_API_KEY` |
 | `--base-url <url>` | `LLM_BASE_URL` | — | Custom endpoint for proxies, OpenRouter, or self-hosted models |

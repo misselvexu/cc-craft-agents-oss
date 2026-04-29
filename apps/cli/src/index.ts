@@ -513,17 +513,19 @@ async function spawnLocalServer(args: CliArgs, opts?: { quiet?: boolean }): Prom
 // LLM connection helpers
 // ---------------------------------------------------------------------------
 
+// Pruned April 2026 to align with the desktop UI's mainstream provider list.
+// Removed: groq, mistral, xai, cerebras, huggingface, amazon-bedrock.
+// Use --base-url with --provider anthropic|openai to reach providers not listed
+// here (the connection is set up as pi_compat / custom endpoint).
 const PROVIDER_ENV_KEYS: Record<string, string> = {
   anthropic: 'ANTHROPIC_API_KEY',
   openai: 'OPENAI_API_KEY',
   google: 'GOOGLE_API_KEY',
   openrouter: 'OPENROUTER_API_KEY',
-  groq: 'GROQ_API_KEY',
-  mistral: 'MISTRAL_API_KEY',
   deepseek: 'DEEPSEEK_API_KEY',
-  xai: 'XAI_API_KEY',
-  cerebras: 'CEREBRAS_API_KEY',
-  huggingface: 'HUGGINGFACE_API_KEY',
+  'kimi-coding': 'KIMI_API_KEY',
+  zai: 'ZAI_API_KEY',
+  minimax: 'MINIMAX_API_KEY',
 }
 
 const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
@@ -531,13 +533,10 @@ const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   openai: 'OpenAI',
   google: 'Google',
   openrouter: 'OpenRouter',
-  groq: 'Groq',
-  mistral: 'Mistral',
   deepseek: 'DeepSeek',
-  xai: 'xAI',
-  cerebras: 'Cerebras',
-  huggingface: 'Hugging Face',
-  'amazon-bedrock': 'Amazon Bedrock',
+  'kimi-coding': 'Kimi (Coding)',
+  zai: 'z.ai (GLM)',
+  minimax: 'Minimax',
 }
 
 function getProviderDisplayName(provider: string): string {
@@ -546,7 +545,6 @@ function getProviderDisplayName(provider: string): string {
 
 export function resolveApiKey(provider: string, explicit: string): string {
   if (explicit) return explicit
-  if (provider === 'amazon-bedrock') return '' // IAM credentials, not API key
   const envKey = PROVIDER_ENV_KEYS[provider]
   if (envKey && process.env[envKey]) return process.env[envKey]!
   throw new Error(
@@ -584,24 +582,6 @@ async function setupLlmConnection(
   } else if (provider === 'anthropic') {
     providerType = 'anthropic'
     authType = 'api_key'
-  } else if (provider === 'amazon-bedrock') {
-    // Bedrock uses IAM credentials, not a single API key
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
-    const region = process.env.AWS_REGION || 'us-east-1'
-    const sessionToken = process.env.AWS_SESSION_TOKEN
-    if (!accessKeyId || !secretAccessKey) {
-      throw new Error(
-        'Amazon Bedrock requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables',
-      )
-    }
-    providerType = 'pi'
-    authType = 'iam_credentials'
-    setupPayload.piAuthProvider = 'amazon-bedrock'
-    setupPayload.bedrockAuthMethod = 'iam_credentials'
-    setupPayload.iamCredentials = { accessKeyId, secretAccessKey, sessionToken }
-    setupPayload.awsRegion = region
-    delete setupPayload.credential // IAM credentials go through iamCredentials field
   } else {
     providerType = 'pi'
     authType = 'api_key'
