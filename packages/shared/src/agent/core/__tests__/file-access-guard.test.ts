@@ -420,6 +420,39 @@ describe('checkCraftAgentAccess — case-insensitive matching', () => {
   });
 });
 
+describe('checkCraftAgentAccess — cross-user .craft-agent fallback', () => {
+  it('denies a path under another user\'s .craft-agent (Bash literal)', () => {
+    const r = checkCraftAgentAccess(
+      '/Users/someone-else/.craft-agent/config.json',
+      ctx,
+      'read',
+    );
+    expect(r.allowed).toBe(false);
+    expect(r.debug).toMatch(/cross-user/);
+  });
+
+  it('denies bare /Users/x/.craft-agent (no trailing /)', () => {
+    expect(checkCraftAgentAccess('/Users/foo/.craft-agent', ctx, 'list').allowed).toBe(false);
+  });
+
+  it('still allows nested project paths that happen to contain .craft-agent (no fragment)', () => {
+    // Edge case: the regex matches "/.craft-agent/" as a fragment, so a path
+    // like "/projects/dot-craft-agent" without a leading slash on the
+    // .craft-agent segment is allowed.
+    expect(
+      checkCraftAgentAccess('/Users/me/projects/dot-craft-agent/foo.txt', ctx, 'read').allowed,
+    ).toBe(true);
+  });
+
+  it('denies a project layout that DOES contain a .craft-agent subdir (acceptable false-positive)', () => {
+    // Documented acceptable false-positive: a literal /.craft-agent/ subdir
+    // anywhere is treated as sandboxed. Extremely unusual layout.
+    expect(
+      checkCraftAgentAccess('/Users/me/projects/foo/.craft-agent/x.txt', ctx, 'read').allowed,
+    ).toBe(false);
+  });
+});
+
 // ============================================================
 // Bash command extraction
 // ============================================================

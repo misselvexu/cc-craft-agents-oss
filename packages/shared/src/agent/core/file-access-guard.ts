@@ -162,8 +162,23 @@ export function checkCraftAgentAccess(
   const pathLower = absolutePath.toLowerCase();
   const rootLower = craftRoot.toLowerCase();
 
-  if (pathLower !== rootLower && !pathLower.startsWith(rootLower + sep)) {
-    // Not under ~/.craft-agent/ — out of scope, allow.
+  // Case 1: under the current user's ~/.craft-agent/ — full rule evaluation
+  if (pathLower === rootLower || pathLower.startsWith(rootLower + sep)) {
+    // fall through to rule evaluation below
+  } else {
+    // Case 2: not under our home dir, but contains '/.craft-agent/' anywhere
+    // (e.g., Bash with hard-coded /Users/<otheruser>/.craft-agent/...). Even
+    // if the file isn't actually readable on disk by the current user, the
+    // attempt itself is exfiltration intent — block uniformly. The narrow
+    // false-positive (a project literally containing a `.craft-agent` dir
+    // somewhere) is acceptable; it's an extremely unusual layout.
+    const fragment = `${sep}.craft-agent${sep}`;
+    const fragmentLower = fragment.toLowerCase();
+    const trailingFragment = `${sep}.craft-agent`.toLowerCase();
+    if (pathLower.includes(fragmentLower) || pathLower.endsWith(trailingFragment)) {
+      return DENY('cross-user .craft-agent access blocked uniformly');
+    }
+    // Truly out of scope.
     return ALLOW();
   }
 

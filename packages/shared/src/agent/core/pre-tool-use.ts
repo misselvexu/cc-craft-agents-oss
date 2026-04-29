@@ -715,8 +715,10 @@ const SANDBOX_TOOL_MAP: Record<string, { field: string; op: GuardOperation }> = 
  *   responsible for their own security; the guard's scope is local file ops.
  *
  * Returns { allowed: true } when the call may proceed.
+ *
+ * Exported for end-to-end testing (sandbox-e2e.test.ts).
  */
-function checkSandboxAccess(
+export function checkSandboxAccess(
   toolName: string,
   input: Record<string, unknown>,
   ctx: SandboxContext,
