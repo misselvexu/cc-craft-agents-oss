@@ -126,6 +126,19 @@ const CONVERTIBLE_FILE_HINTS: Record<string, string> = {
   ics: 'ical-tool read',
 };
 
+/**
+ * Whether sampling parameters (temperature / top_p / top_k) must be stripped
+ * for this model. Opus 4.7 (and Mythos Preview) return a 400 error if any
+ * non-default sampling param is present — see Anthropic's Opus 4.7 migration
+ * guide and docs/analysis/opus-4-7-thinking-bugs.md (Bug L).
+ *
+ * Exported for unit testing; will be replaced by a profile-driven
+ * `ModelProfile.capabilities.samplingParams` check in a later commit.
+ */
+export function shouldStripSamplingParams(model: string): boolean {
+  return model.includes('opus-4-7') || model.includes('mythos');
+}
+
 export function resolveClaudeThinkingOptions(args: {
   thinkingLevel: ThinkingLevel;
   model: string;
@@ -2660,6 +2673,17 @@ This is a branched conversation. All prior messages in this conversation are par
   async queryLlm(request: LLMQueryRequest): Promise<LLMQueryResult> {
     const model = request.model ?? this.config.miniModel ?? getDefaultSummarizationModel();
 
+    // Opus 4.7 (and Mythos Preview) reject any non-default temperature / top_p /
+    // top_k with a 400 error. Strip sampling params for that family — the
+    // call_llm tool schema still accepts them for older models.
+    // See docs/analysis/opus-4-7-thinking-bugs.md (Bug L). This is an interim
+    // guard; a profile-driven samplingParams capability check follows later.
+    const stripSampling = shouldStripSamplingParams(model);
+    const includeTemperature = request.temperature !== undefined && !stripSampling;
+    if (request.temperature !== undefined && stripSampling) {
+      this.debug(`[queryLlm] stripped temperature=${request.temperature} for ${model} (Opus 4.7+ rejects sampling params)`);
+    }
+
     const options = {
       ...getDefaultOptions(this.config.envOverrides),
       model,
@@ -2668,7 +2692,7 @@ This is a branched conversation. All prior messages in this conversation are par
       maxTurns: 10,
       systemPrompt: request.systemPrompt ?? 'Reply with ONLY the requested text. No explanation.',
       ...(request.maxTokens ? { maxTokens: request.maxTokens } : {}),
-      ...(request.temperature !== undefined ? { temperature: request.temperature } : {}),
+      ...(includeTemperature ? { temperature: request.temperature } : {}),
       ...(request.outputSchema ? {
         outputFormat: { type: 'json_schema' as const, schema: request.outputSchema },
       } : {}),

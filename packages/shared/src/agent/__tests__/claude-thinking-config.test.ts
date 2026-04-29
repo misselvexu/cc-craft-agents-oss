@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { resolveClaudeThinkingOptions } from '../claude-agent.ts'
+import { resolveClaudeThinkingOptions, shouldStripSamplingParams } from '../claude-agent.ts'
 import { getThinkingTokens } from '../thinking-levels.ts'
 
 describe('resolveClaudeThinkingOptions', () => {
@@ -123,5 +123,36 @@ describe('getThinkingTokens', () => {
 
   it('returns the haiku xhigh budget', () => {
     expect(getThinkingTokens('xhigh', 'claude-haiku-4-5-20251001')).toBe(7_000)
+  })
+})
+
+describe('shouldStripSamplingParams', () => {
+  it('strips sampling params on Opus 4.7', () => {
+    expect(shouldStripSamplingParams('claude-opus-4-7')).toBe(true)
+  })
+
+  it('strips sampling params on Mythos Preview', () => {
+    expect(shouldStripSamplingParams('claude-mythos-preview')).toBe(true)
+  })
+
+  it('strips sampling params on a dated Opus 4.7 release tag', () => {
+    expect(shouldStripSamplingParams('claude-opus-4-7-20260315')).toBe(true)
+  })
+
+  it('keeps sampling params on Opus 4.6', () => {
+    expect(shouldStripSamplingParams('claude-opus-4-6')).toBe(false)
+  })
+
+  it('keeps sampling params on Sonnet 4.6', () => {
+    expect(shouldStripSamplingParams('claude-sonnet-4-6')).toBe(false)
+  })
+
+  it('keeps sampling params on Haiku 4.5', () => {
+    expect(shouldStripSamplingParams('claude-haiku-4-5-20251001')).toBe(false)
+  })
+
+  it('keeps sampling params on non-Claude models', () => {
+    expect(shouldStripSamplingParams('gpt-5.3-codex')).toBe(false)
+    expect(shouldStripSamplingParams('gemini-2.5-pro')).toBe(false)
   })
 })

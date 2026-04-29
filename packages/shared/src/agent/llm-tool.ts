@@ -588,7 +588,7 @@ For large files (>2000 lines), use {path, startLine, endLine} to select a portio
         .describe('Max output tokens (1-64000). Defaults to 4096'),
 
       temperature: z.number().min(0).max(1).optional()
-        .describe('Sampling temperature 0-1'),
+        .describe('Sampling temperature 0-1. Note: ignored on Opus 4.7+ models, which reject any non-default sampling parameters.'),
 
       outputFormat: z.enum(['summary', 'classification', 'extraction', 'analysis', 'comparison', 'validation']).optional()
         .describe('Predefined output format'),
