@@ -1,0 +1,1157 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`snapshot matrix full matrix produces stable shapes 1`] = `
+{
+  "claude-haiku-4-5-20251001 | anthropic-native | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "temperature": 0.7,
+      "thinking": {
+        "budgetTokens": 8000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | anthropic-native | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 4000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | anthropic-native | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 0,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | anthropic-native | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 7000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | anthropic-oauth | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "temperature": 0.7,
+      "thinking": {
+        "budgetTokens": 8000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | anthropic-oauth | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 4000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | anthropic-oauth | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 0,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | anthropic-oauth | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 7000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | pi-compat-custom | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "temperature": 0.7,
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-haiku-4-5-20251001; running without extended thinking",
+      },
+    ],
+  },
+  "claude-haiku-4-5-20251001 | pi-compat-custom | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-haiku-4-5-20251001; running without extended thinking",
+      },
+    ],
+  },
+  "claude-haiku-4-5-20251001 | pi-compat-custom | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | pi-compat-custom | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-haiku-4-5-20251001; running without extended thinking",
+      },
+    ],
+  },
+  "claude-haiku-4-5-20251001 | pi-deepseek | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "temperature": 0.7,
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-haiku-4-5-20251001; running without extended thinking",
+      },
+    ],
+  },
+  "claude-haiku-4-5-20251001 | pi-deepseek | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-haiku-4-5-20251001; running without extended thinking",
+      },
+    ],
+  },
+  "claude-haiku-4-5-20251001 | pi-deepseek | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | pi-deepseek | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-haiku-4-5-20251001; running without extended thinking",
+      },
+    ],
+  },
+  "claude-haiku-4-5-20251001 | pi-openrouter | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "temperature": 0.7,
+      "thinking": {
+        "budgetTokens": 8000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | pi-openrouter | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 4000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | pi-openrouter | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 0,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-haiku-4-5-20251001 | pi-openrouter | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 4096,
+      "model": "claude-haiku-4-5-20251001",
+      "thinking": {
+        "budgetTokens": 7000,
+        "type": "enabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | anthropic-native | thinking=max t=0.7": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "max",
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "temperature": 0.7,
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | anthropic-native | thinking=medium": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "medium",
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | anthropic-native | thinking=off": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | anthropic-native | thinking=xhigh": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "high",
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "xhigh",
+        "kind": "effort-downgraded",
+        "reason": "Effort xhigh not supported by claude-opus-4-6; provider auto-downgrades silently",
+        "to": "high",
+      },
+    ],
+  },
+  "claude-opus-4-6 | anthropic-oauth | thinking=max t=0.7": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "max",
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "temperature": 0.7,
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | anthropic-oauth | thinking=medium": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "medium",
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | anthropic-oauth | thinking=off": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | anthropic-oauth | thinking=xhigh": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "high",
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "xhigh",
+        "kind": "effort-downgraded",
+        "reason": "Effort xhigh not supported by claude-opus-4-6; provider auto-downgrades silently",
+        "to": "high",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-compat-custom | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "temperature": 0.7,
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-compat-custom | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-compat-custom | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | pi-compat-custom | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-deepseek | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "temperature": 0.7,
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-deepseek | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-deepseek | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | pi-deepseek | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-openrouter | thinking=max t=0.7": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "temperature": 0.7,
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "max",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-openrouter | thinking=medium": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "medium",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+  "claude-opus-4-6 | pi-openrouter | thinking=off": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-6 | pi-openrouter | thinking=xhigh": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 32000,
+      "model": "claude-opus-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "xhigh",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+  "claude-opus-4-7 | anthropic-native | thinking=max t=0.7": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "max",
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "temperature",
+        "from": 0.7,
+        "kind": "param-stripped",
+        "reason": "claude-opus-4-7 rejects temperature (and other sampling params)",
+      },
+    ],
+  },
+  "claude-opus-4-7 | anthropic-native | thinking=medium": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "medium",
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | anthropic-native | thinking=off": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | anthropic-native | thinking=xhigh": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "xhigh",
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | anthropic-oauth | thinking=max t=0.7": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "max",
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "temperature",
+        "from": 0.7,
+        "kind": "param-stripped",
+        "reason": "claude-opus-4-7 rejects temperature (and other sampling params)",
+      },
+    ],
+  },
+  "claude-opus-4-7 | anthropic-oauth | thinking=medium": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "medium",
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | anthropic-oauth | thinking=off": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | anthropic-oauth | thinking=xhigh": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "effort": "xhigh",
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | pi-compat-custom | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-7; running without extended thinking",
+      },
+      {
+        "field": "temperature",
+        "from": 0.7,
+        "kind": "param-stripped",
+        "reason": "claude-opus-4-7 rejects temperature (and other sampling params)",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-compat-custom | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-7; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-compat-custom | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | pi-compat-custom | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-7; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-deepseek | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-7; running without extended thinking",
+      },
+      {
+        "field": "temperature",
+        "from": 0.7,
+        "kind": "param-stripped",
+        "reason": "claude-opus-4-7 rejects temperature (and other sampling params)",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-deepseek | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-7; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-deepseek | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | pi-deepseek | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-opus-4-7; running without extended thinking",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-openrouter | thinking=max t=0.7": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "max",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+      {
+        "field": "temperature",
+        "from": 0.7,
+        "kind": "param-stripped",
+        "reason": "claude-opus-4-7 rejects temperature (and other sampling params)",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-openrouter | thinking=medium": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "medium",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+  "claude-opus-4-7 | pi-openrouter | thinking=off": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-opus-4-7 | pi-openrouter | thinking=xhigh": {
+    "headers": {
+      "anthropic-beta": "context-1m-2025-08-07",
+    },
+    "params": {
+      "maxTokens": 64000,
+      "model": "claude-opus-4-7[1m]",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "xhigh",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | anthropic-native | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "effort": "max",
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "temperature": 0.7,
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | anthropic-native | thinking=medium": {
+    "headers": {},
+    "params": {
+      "effort": "medium",
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | anthropic-native | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | anthropic-native | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "effort": "high",
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "xhigh",
+        "kind": "effort-downgraded",
+        "reason": "Effort xhigh not supported by claude-sonnet-4-6; provider auto-downgrades silently",
+        "to": "high",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | anthropic-oauth | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "effort": "max",
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "temperature": 0.7,
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | anthropic-oauth | thinking=medium": {
+    "headers": {},
+    "params": {
+      "effort": "medium",
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | anthropic-oauth | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | anthropic-oauth | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "effort": "high",
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "xhigh",
+        "kind": "effort-downgraded",
+        "reason": "Effort xhigh not supported by claude-sonnet-4-6; provider auto-downgrades silently",
+        "to": "high",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-compat-custom | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "temperature": 0.7,
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-sonnet-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-compat-custom | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-sonnet-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-compat-custom | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | pi-compat-custom | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-sonnet-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-deepseek | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "temperature": 0.7,
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-sonnet-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-deepseek | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-sonnet-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-deepseek | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | pi-deepseek | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+    },
+    "warnings": [
+      {
+        "kind": "thinking-disabled",
+        "reason": "Provider does not forward thinking for claude-sonnet-4-6; running without extended thinking",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-openrouter | thinking=max t=0.7": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "temperature": 0.7,
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "max",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-openrouter | thinking=medium": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "medium",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+  "claude-sonnet-4-6 | pi-openrouter | thinking=off": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "type": "disabled",
+      },
+    },
+    "warnings": [],
+  },
+  "claude-sonnet-4-6 | pi-openrouter | thinking=xhigh": {
+    "headers": {},
+    "params": {
+      "maxTokens": 16000,
+      "model": "claude-sonnet-4-6",
+      "thinking": {
+        "display": "summarized",
+        "type": "adaptive",
+      },
+    },
+    "warnings": [
+      {
+        "field": "effort",
+        "from": "xhigh",
+        "kind": "param-stripped",
+        "reason": "Provider does not forward the Anthropic 'effort' field; thinking depth is whatever the upstream defaults to",
+      },
+    ],
+  },
+}
+`;
