@@ -22,6 +22,7 @@ import { expandPath } from '../utils/paths.ts';
 import { buildTransferredSessionContext } from './conversation-summary.ts';
 import type { ThinkingLevel } from './thinking-levels.ts';
 import { DEFAULT_THINKING_LEVEL, normalizeThinkingLevel } from './thinking-levels.ts';
+import { getRecommendedThinkingLevelForModel } from './profiles/registry.ts';
 import type { PermissionMode } from './mode-manager.ts';
 import type { LoadedSource } from '../sources/types.ts';
 import { buildCallLlmRequest, type LLMQueryRequest, type LLMQueryResult } from './llm-tool.ts';
@@ -260,7 +261,14 @@ export abstract class BaseAgent implements AgentBackend {
     this.workingDirectory = config.session?.workingDirectory ?? config.workspace.rootPath ?? process.cwd();
     this._sessionId = config.session?.id || `agent-${Date.now()}`;
     this._model = config.model || defaultModel;
-    this._thinkingLevel = normalizeThinkingLevel(config.thinkingLevel) ?? DEFAULT_THINKING_LEVEL;
+    // Per-model default thinking level (Bug N): each ModelProfile carries its
+    // recommended level — Opus 4.7 -> 'xhigh' per Anthropic's recommendation,
+    // older Claude -> 'medium', Haiku -> 'low'. Falls back to the global
+    // DEFAULT_THINKING_LEVEL when the model isn't in the profile registry.
+    this._thinkingLevel =
+      normalizeThinkingLevel(config.thinkingLevel)
+      ?? getRecommendedThinkingLevelForModel(this._model)
+      ?? DEFAULT_THINKING_LEVEL;
 
     // Initialize core modules
     // PermissionManager: handles permission evaluation, mode management, and command whitelisting

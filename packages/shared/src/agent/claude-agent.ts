@@ -22,7 +22,7 @@ import {
 } from '../config/llm-connections.ts';
 import type { McpClientPool } from '../mcp/mcp-pool.ts';
 import { loadPlanFromPath, type SessionConfig as Session } from '../sessions/storage.ts';
-import { DEFAULT_MODEL, isClaudeModel, getDefaultSummarizationModel, getModelContextWindow } from '../config/models.ts';
+import { DEFAULT_MODEL, getDefaultSummarizationModel, getModelContextWindow } from '../config/models.ts';
 import { getCredentialManager } from '../credentials/index.ts';
 import { loadPreferences, formatPreferencesForPrompt, getCoAuthorPreference } from '../config/preferences.ts';
 import type { FileAttachment } from '../utils/files.ts';
@@ -67,7 +67,10 @@ import {
   type PreToolUseCheckResult,
   BUILT_IN_TOOLS,
 } from './core/pre-tool-use.ts';
-import { type ThinkingLevel, THINKING_TO_EFFORT, getThinkingTokens, DEFAULT_THINKING_LEVEL } from './thinking-levels.ts';
+import { type ThinkingLevel } from './thinking-levels.ts';
+import { resolveRequestParams } from './profiles/resolver.ts';
+import { getModelProfile, getProviderProfile } from './profiles/registry.ts';
+import type { UserIntent } from './profiles/types.ts';
 import { generateConversationSummary } from './conversation-summary.ts';
 import type { LoadedSource } from '../sources/types.ts';
 import { sourceNeedsAuthentication } from '../sources/credential-manager.ts';
@@ -126,77 +129,12 @@ const CONVERTIBLE_FILE_HINTS: Record<string, string> = {
   ics: 'ical-tool read',
 };
 
-/**
- * Whether sampling parameters (temperature / top_p / top_k) must be stripped
- * for this model. Opus 4.7 (and Mythos Preview) return a 400 error if any
- * non-default sampling param is present — see Anthropic's Opus 4.7 migration
- * guide and docs/analysis/opus-4-7-thinking-bugs.md (Bug L).
- *
- * Exported for unit testing; will be replaced by a profile-driven
- * `ModelProfile.capabilities.samplingParams` check in a later commit.
- */
-export function shouldStripSamplingParams(model: string): boolean {
-  return model.includes('opus-4-7') || model.includes('mythos');
-}
-
-/**
- * Recommended `max_tokens` floor for the (model, effort) pair. Returns
- * `undefined` when the SDK's default is fine to use.
- *
- * Currently only Opus 4.7 with `xhigh`/`max` effort needs an explicit floor:
- * Anthropic recommends >= 64k there to avoid `stop_reason: 'max_tokens'`
- * truncating long agentic loops. See docs/analysis/opus-4-7-thinking-bugs.md
- * (Bug M).
- *
- * Exported for unit testing; will be replaced by a profile-driven
- * `ModelProfile.defaults.minMaxTokens` lookup in a later commit.
- */
-export function getRecommendedMaxTokens(
-  model: string,
-  effort: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | undefined,
-): number | undefined {
-  const isOpus47 = model.includes('opus-4-7') || model.includes('mythos');
-  const isHighEffort = effort === 'xhigh' || effort === 'max';
-  if (isOpus47 && isHighEffort) return 64_000;
-  return undefined;
-}
-
-export function resolveClaudeThinkingOptions(args: {
-  thinkingLevel: ThinkingLevel;
-  model: string;
-  providerType?: BackendConfig['providerType'];
-  minimizeThinking: boolean;
-}): Partial<Options> {
-  const { thinkingLevel, model, providerType, minimizeThinking } = args;
-  const isClaude = isClaudeModel(model);
-  const effort = THINKING_TO_EFFORT[thinkingLevel];
-  const isHaiku = model.toLowerCase().includes('haiku');
-  const supportsAdaptiveThinking = isClaude && !isHaiku;
-
-  if (minimizeThinking || !isClaude || !effort) {
-    return supportsAdaptiveThinking
-      ? { thinking: { type: 'disabled' as const } }
-      : { maxThinkingTokens: 0 };
-  }
-
-  if (supportsAdaptiveThinking) {
-    // display: 'summarized' is required on Opus 4.7+ to surface visible
-    // thinking tokens in the SSE stream. The API default flipped to
-    // 'omitted' in 4.7, which would otherwise break the renderer's
-    // streaming-thinking UI (empty thinking field, long perceived pause).
-    // On older Claude models the default is already 'summarized', so
-    // setting it explicitly is a safe no-op there.
-    // See docs/analysis/opus-4-7-thinking-bugs.md (Bug J).
-    return {
-      thinking: { type: 'adaptive' as const, display: 'summarized' as const },
-      effort,
-    };
-  }
-
-  return {
-    maxThinkingTokens: getThinkingTokens(thinkingLevel, model),
-  };
-}
+// Note: the helpers `resolveClaudeThinkingOptions`, `shouldStripSamplingParams`
+// and `getRecommendedMaxTokens` (added as interim guards in earlier commits)
+// were removed in this commit. Their behaviour is fully subsumed by
+// `resolveRequestParams()` from `./profiles/resolver.ts`, which the chat()
+// and queryLlm() paths now consume directly. Tests for those helpers have
+// migrated to packages/shared/src/agent/profiles/__tests__/resolver.test.ts.
 
 export interface ClaudeAgentConfig {
   workspace: Workspace;
@@ -917,18 +855,35 @@ export class ClaudeAgent extends BaseAgent {
         debug(`[chat] Custom provider: baseUrl=${activeBaseUrl}, model=${model}, hasApiKey=${!!process.env.ANTHROPIC_API_KEY}`);
       }
 
-      const thinkingOptions = resolveClaudeThinkingOptions({
-        thinkingLevel: this._thinkingLevel,
-        model,
-        providerType: this.config.providerType,
-        minimizeThinking: miniConfig.minimizeThinking,
+      // Resolve all (model x provider x intent)-aware request params via the
+      // capability resolver. This replaces the inline thinking / 1M context /
+      // max_tokens logic and respects the (model, provider) capability matrix.
+      // See packages/shared/src/agent/profiles/ and
+      // docs/analysis/opus-4-7-thinking-bugs.md for the architecture.
+      const modelProfile = getModelProfile(model);
+      const providerProfile = getProviderProfile({
+        legacyProviderType: this.config.providerType ?? 'anthropic',
+        authType: this.config.authType,
+        baseUrl: defaultConn?.baseUrl,
       });
-      if ('effort' in thinkingOptions && thinkingOptions.effort) {
-        debug(`[chat] Thinking: level=${this._thinkingLevel}, effort=${thinkingOptions.effort}`);
-      } else if ('maxThinkingTokens' in thinkingOptions) {
-        debug(`[chat] Thinking: level=${this._thinkingLevel}, tokens=${thinkingOptions.maxThinkingTokens}`);
+      const intent: UserIntent = {
+        thinkingLevel: this._thinkingLevel,
+        minimizeThinking: miniConfig.minimizeThinking,
+        enable1MContext: this.config.enable1MContext,
+      };
+      const resolved = resolveRequestParams(intent, modelProfile, providerProfile);
+
+      // Surface every downgrade / strip / disable so users can debug what the
+      // (model, provider) combination actually allowed.
+      for (const w of resolved.warnings) {
+        debug(`[capability] ${w.kind}${w.field ? `(${w.field})` : ''}: ${w.reason}`);
+      }
+      if (resolved.params.thinking?.type === 'adaptive' && resolved.params.effort) {
+        debug(`[chat] Thinking: level=${this._thinkingLevel}, effort=${resolved.params.effort}, model=${resolved.params.model}, provider=${providerProfile.id}`);
+      } else if (resolved.params.thinking?.type === 'enabled') {
+        debug(`[chat] Thinking: level=${this._thinkingLevel}, budget=${resolved.params.thinking.budgetTokens}, model=${resolved.params.model}`);
       } else {
-        debug(`[chat] Thinking: level=${this._thinkingLevel}, disabled`);
+        debug(`[chat] Thinking: level=${this._thinkingLevel}, disabled, model=${resolved.params.model}, provider=${providerProfile.id}`);
       }
 
       // NOTE: Parent-child tracking for subagents is documented below (search for
@@ -941,7 +896,7 @@ export class ClaudeAgent extends BaseAgent {
       if (miniConfig.enabled) {
         debug('[ClaudeAgent] 🤖 MINI AGENT mode - optimized for quick config edits');
         debug('[ClaudeAgent] Mini agent optimizations:', {
-          model,
+          model: resolved.params.model,
           tools: miniConfig.tools,
           mcpServers: miniConfig.mcpServerKeys,
           thinking: 'disabled',
@@ -949,29 +904,9 @@ export class ClaudeAgent extends BaseAgent {
         });
       }
 
-      // Enable 1M context window for models that support it.
-      // Despite Anthropic docs claiming 1M is GA, the API still defaults to 200k
-      // without an explicit opt-in. The betas header only works for API key users;
-      // for OAuth the [1m] model suffix is the way. Use the suffix unconditionally
-      // since it works for both auth paths. See: anthropics/claude-agent-sdk-typescript#238
-      // Gated by enable1MContext in global config (~/.craft-agent/config.json).
-      // The interceptor also reads this to strip the SDK-injected beta header.
-      const use1M = this.config.enable1MContext !== false;
-      const effectiveModel = use1M && getModelContextWindow(model) === 1_000_000
-        ? `${model}[1m]`
-        : model;
-
-      // Opus 4.7 with xhigh/max effort needs a large max_tokens to avoid
-      // stop_reason: 'max_tokens' truncating long agentic loops. Anthropic
-      // recommends >= 64k for that combination. The SDK's default is much
-      // smaller (8k-16k typical for older models). Apply a model+effort-aware
-      // floor here. See docs/analysis/opus-4-7-thinking-bugs.md (Bug M).
-      const effortValue = 'effort' in thinkingOptions ? thinkingOptions.effort : undefined;
-      const recommendedMaxTokens = getRecommendedMaxTokens(model, effortValue);
-
       const options: Options = {
         ...getDefaultOptions(this.config.envOverrides),
-        model: effectiveModel,
+        model: resolved.params.model ?? model,
         // Capture stderr from SDK subprocess for error diagnostics
         // This helps identify why sessions fail with "process exited with code 1"
         stderr: (data: string) => {
@@ -984,12 +919,15 @@ export class ClaudeAgent extends BaseAgent {
             this.lastStderrOutput.shift();
           }
         },
-        ...(recommendedMaxTokens ? { maxTokens: recommendedMaxTokens } : {}),
-        // Thinking config is provider-aware:
-        // - true Anthropic backends use adaptive thinking + effort
-        // - anthropic_compat/custom endpoints fall back to token budgets
-        // - non-Claude models disable thinking entirely
-        ...thinkingOptions,
+        // Capability-resolved request shape (thinking, effort, maxTokens, speed).
+        // The resolver gates each field on (model x provider) — e.g. effort is
+        // dropped when the gateway doesn't forward it (Bug B), maxTokens is
+        // raised to the model's minimum (Bug M), display: 'summarized' is set
+        // on Opus 4.7 (Bug J), sampling params would be stripped here too.
+        ...(resolved.params.thinking !== undefined ? { thinking: resolved.params.thinking } : {}),
+        ...(resolved.params.effort !== undefined ? { effort: resolved.params.effort } : {}),
+        ...(resolved.params.maxTokens !== undefined ? { maxTokens: resolved.params.maxTokens } : {}),
+        ...(resolved.params.speed !== undefined ? { speed: resolved.params.speed } : {}),
         // System prompt configuration:
         // - Mini agents: Use custom (lean) system prompt without Claude Code preset
         // - Normal agents: Append to Claude Code's system prompt (recommended by docs)
@@ -2704,26 +2642,39 @@ This is a branched conversation. All prior messages in this conversation are par
   async queryLlm(request: LLMQueryRequest): Promise<LLMQueryResult> {
     const model = request.model ?? this.config.miniModel ?? getDefaultSummarizationModel();
 
-    // Opus 4.7 (and Mythos Preview) reject any non-default temperature / top_p /
-    // top_k with a 400 error. Strip sampling params for that family — the
-    // call_llm tool schema still accepts them for older models.
-    // See docs/analysis/opus-4-7-thinking-bugs.md (Bug L). This is an interim
-    // guard; a profile-driven samplingParams capability check follows later.
-    const stripSampling = shouldStripSamplingParams(model);
-    const includeTemperature = request.temperature !== undefined && !stripSampling;
-    if (request.temperature !== undefined && stripSampling) {
-      this.debug(`[queryLlm] stripped temperature=${request.temperature} for ${model} (Opus 4.7+ rejects sampling params)`);
+    // Resolve through the capability layer so call_llm honours the same
+    // (model x provider) constraints as the main chat path: sampling params
+    // dropped on Opus 4.7+, max_tokens floor enforced, etc.
+    const defaultConnSlug = getDefaultLlmConnection();
+    const defaultConn = defaultConnSlug ? getLlmConnection(defaultConnSlug) : null;
+    const modelProfile = getModelProfile(model);
+    const providerProfile = getProviderProfile({
+      legacyProviderType: this.config.providerType ?? 'anthropic',
+      authType: this.config.authType,
+      baseUrl: defaultConn?.baseUrl,
+    });
+    // queryLlm callers don't expose thinkingLevel — default to 'off' so the
+    // mini path stays cheap. Future: surface as part of LLMQueryRequest.
+    const intent: UserIntent = {
+      thinkingLevel: 'off',
+      temperature: request.temperature,
+      maxTokens: request.maxTokens,
+    };
+    const resolved = resolveRequestParams(intent, modelProfile, providerProfile);
+    for (const w of resolved.warnings) {
+      this.debug(`[queryLlm capability] ${w.kind}${w.field ? `(${w.field})` : ''}: ${w.reason}`);
     }
 
     const options = {
       ...getDefaultOptions(this.config.envOverrides),
-      model,
+      model: resolved.params.model ?? model,
       // Reasoning-model outputs (Opus 4.7 extended thinking) can span multiple SDK-counted
       // turns even with no tools exposed. Tool surface here is empty, so no tool-use loop risk.
       maxTurns: 10,
       systemPrompt: request.systemPrompt ?? 'Reply with ONLY the requested text. No explanation.',
-      ...(request.maxTokens ? { maxTokens: request.maxTokens } : {}),
-      ...(includeTemperature ? { temperature: request.temperature } : {}),
+      ...(resolved.params.thinking !== undefined ? { thinking: resolved.params.thinking } : {}),
+      ...(resolved.params.maxTokens !== undefined ? { maxTokens: resolved.params.maxTokens } : {}),
+      ...(resolved.params.temperature !== undefined ? { temperature: resolved.params.temperature } : {}),
       ...(request.outputSchema ? {
         outputFormat: { type: 'json_schema' as const, schema: request.outputSchema },
       } : {}),

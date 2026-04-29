@@ -258,6 +258,20 @@ function matchKnownBaseUrl(baseUrl: string): ProviderProfile | undefined {
   return undefined;
 }
 
+/**
+ * Recommended default ThinkingLevel for a model. Replaces the global
+ * DEFAULT_THINKING_LEVEL fallback so each model can opt into the level
+ * its vendor recommends — e.g. Opus 4.7 -> 'xhigh' (Anthropic's
+ * documented recommendation), Opus 4.6 -> 'medium', Haiku -> 'low'.
+ *
+ * Falls back to 'medium' for unknown models so behaviour stays sane
+ * without registry coverage.
+ */
+export function getRecommendedThinkingLevelForModel(modelId: string): import('../thinking-levels.ts').ThinkingLevel {
+  const profile = getModelProfile(modelId);
+  return profile.defaults.recommendedThinkingLevel ?? 'medium';
+}
+
 // Re-exports for convenience
 export { MODEL_PROFILES, ALL_MODEL_PROFILES };
 export { PROVIDER_PROFILES, ALL_PROVIDER_PROFILES };
