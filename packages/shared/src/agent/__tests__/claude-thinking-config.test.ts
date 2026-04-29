@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'bun:test'
-import { resolveClaudeThinkingOptions, shouldStripSamplingParams } from '../claude-agent.ts'
+import {
+  resolveClaudeThinkingOptions,
+  shouldStripSamplingParams,
+  getRecommendedMaxTokens,
+} from '../claude-agent.ts'
 import { getThinkingTokens } from '../thinking-levels.ts'
 
 describe('resolveClaudeThinkingOptions', () => {
@@ -154,5 +158,40 @@ describe('shouldStripSamplingParams', () => {
   it('keeps sampling params on non-Claude models', () => {
     expect(shouldStripSamplingParams('gpt-5.3-codex')).toBe(false)
     expect(shouldStripSamplingParams('gemini-2.5-pro')).toBe(false)
+  })
+})
+
+describe('getRecommendedMaxTokens', () => {
+  it('returns 64000 for Opus 4.7 with xhigh effort', () => {
+    expect(getRecommendedMaxTokens('claude-opus-4-7', 'xhigh')).toBe(64_000)
+  })
+
+  it('returns 64000 for Opus 4.7 with max effort', () => {
+    expect(getRecommendedMaxTokens('claude-opus-4-7', 'max')).toBe(64_000)
+  })
+
+  it('returns 64000 for Mythos Preview at xhigh', () => {
+    expect(getRecommendedMaxTokens('claude-mythos-preview', 'xhigh')).toBe(64_000)
+  })
+
+  it('returns undefined for Opus 4.7 at low/medium/high (SDK default suffices)', () => {
+    expect(getRecommendedMaxTokens('claude-opus-4-7', 'low')).toBeUndefined()
+    expect(getRecommendedMaxTokens('claude-opus-4-7', 'medium')).toBeUndefined()
+    expect(getRecommendedMaxTokens('claude-opus-4-7', 'high')).toBeUndefined()
+  })
+
+  it('returns undefined for Opus 4.7 with no effort (thinking off)', () => {
+    expect(getRecommendedMaxTokens('claude-opus-4-7', undefined)).toBeUndefined()
+  })
+
+  it('returns undefined for older Claude models even at xhigh/max', () => {
+    expect(getRecommendedMaxTokens('claude-opus-4-6', 'max')).toBeUndefined()
+    expect(getRecommendedMaxTokens('claude-sonnet-4-6', 'xhigh')).toBeUndefined()
+    expect(getRecommendedMaxTokens('claude-haiku-4-5-20251001', 'max')).toBeUndefined()
+  })
+
+  it('returns undefined for non-Claude models', () => {
+    expect(getRecommendedMaxTokens('gpt-5.3-codex', 'high')).toBeUndefined()
+    expect(getRecommendedMaxTokens('gemini-2.5-pro', 'max')).toBeUndefined()
   })
 })

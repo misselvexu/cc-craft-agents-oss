@@ -139,6 +139,28 @@ export function shouldStripSamplingParams(model: string): boolean {
   return model.includes('opus-4-7') || model.includes('mythos');
 }
 
+/**
+ * Recommended `max_tokens` floor for the (model, effort) pair. Returns
+ * `undefined` when the SDK's default is fine to use.
+ *
+ * Currently only Opus 4.7 with `xhigh`/`max` effort needs an explicit floor:
+ * Anthropic recommends >= 64k there to avoid `stop_reason: 'max_tokens'`
+ * truncating long agentic loops. See docs/analysis/opus-4-7-thinking-bugs.md
+ * (Bug M).
+ *
+ * Exported for unit testing; will be replaced by a profile-driven
+ * `ModelProfile.defaults.minMaxTokens` lookup in a later commit.
+ */
+export function getRecommendedMaxTokens(
+  model: string,
+  effort: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | undefined,
+): number | undefined {
+  const isOpus47 = model.includes('opus-4-7') || model.includes('mythos');
+  const isHighEffort = effort === 'xhigh' || effort === 'max';
+  if (isOpus47 && isHighEffort) return 64_000;
+  return undefined;
+}
+
 export function resolveClaudeThinkingOptions(args: {
   thinkingLevel: ThinkingLevel;
   model: string;
@@ -939,6 +961,14 @@ export class ClaudeAgent extends BaseAgent {
         ? `${model}[1m]`
         : model;
 
+      // Opus 4.7 with xhigh/max effort needs a large max_tokens to avoid
+      // stop_reason: 'max_tokens' truncating long agentic loops. Anthropic
+      // recommends >= 64k for that combination. The SDK's default is much
+      // smaller (8k-16k typical for older models). Apply a model+effort-aware
+      // floor here. See docs/analysis/opus-4-7-thinking-bugs.md (Bug M).
+      const effortValue = 'effort' in thinkingOptions ? thinkingOptions.effort : undefined;
+      const recommendedMaxTokens = getRecommendedMaxTokens(model, effortValue);
+
       const options: Options = {
         ...getDefaultOptions(this.config.envOverrides),
         model: effectiveModel,
@@ -954,6 +984,7 @@ export class ClaudeAgent extends BaseAgent {
             this.lastStderrOutput.shift();
           }
         },
+        ...(recommendedMaxTokens ? { maxTokens: recommendedMaxTokens } : {}),
         // Thinking config is provider-aware:
         // - true Anthropic backends use adaptive thinking + effort
         // - anthropic_compat/custom endpoints fall back to token budgets
