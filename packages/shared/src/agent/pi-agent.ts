@@ -36,6 +36,8 @@ import { getModelById } from '../config/models.ts';
 // BaseAgent provides common functionality
 import { BaseAgent } from './base-agent.ts';
 import type { Workspace } from '../config/storage.ts';
+import { getLlmConnection } from '../config/storage.ts';
+import { buildSelfSessionInfo, buildSessionIdentityBlock } from './session-identity.ts';
 
 // Event adapter
 import { PiEventAdapter } from './backend/pi/event-adapter.ts';
@@ -1788,10 +1790,29 @@ export class PiAgent extends BaseAgent {
     // survives across turns.
     const sessionId = this.config.session?.id;
     if (sessionId) {
-      mergeSessionScopedToolCallbacks(sessionId, {
+      const piSessionId = sessionId; // capture for closure
+      mergeSessionScopedToolCallbacks(piSessionId, {
         onPlanSubmitted: (planPath) => this.onPlanSubmitted?.(planPath),
         onAuthRequest: (request) => this.onAuthRequest?.(request),
         queryFn: (request) => this.queryLlm(request),
+        // Baseline session introspection — see session-identity.ts. Lets the
+        // get_session_info MCP tool work even when SessionManager hasn't
+        // merged its richer fn (the trigger of the original sandbox bug:
+        // get_session_info returned isError=true and AI fell back to Read
+        // ~/.craft-agent/config.json). SessionManager's later merge with
+        // labels / status / name takes precedence on each field.
+        getSessionInfoFn: (sid) => {
+          const targetId = sid ?? piSessionId;
+          if (targetId !== piSessionId) return null;
+          return buildSelfSessionInfo({
+            sessionId: piSessionId,
+            permissionMode: this.permissionManager.getPermissionMode(),
+            workingDirectory: this.workingDirectory,
+            connectionSlug: this.config.connectionSlug ?? this.config.session?.llmConnection,
+            modelId: this._model,
+            createdAt: this.config.session?.createdAt,
+          });
+        },
       });
     }
 
@@ -1838,8 +1859,13 @@ export class PiAgent extends BaseAgent {
         return;
       }
 
-      // Build system prompt
-      const systemPrompt = getSystemPrompt(
+      // Build system prompt — append a <session_identity> block so the agent
+      // can answer "what model / connection am I" questions without needing
+      // get_session_info or Read of config files. See
+      // docs/analysis/sandbox-isolation-bug.md §7.
+      const connectionSlug = this.config.connectionSlug ?? this.config.session?.llmConnection;
+      const connectionRecord = connectionSlug ? getLlmConnection(connectionSlug) : null;
+      const baseSystemPrompt = getSystemPrompt(
         undefined, // pinnedPreferencesPrompt
         this.config.debugMode,
         this.config.workspace.rootPath,
@@ -1848,6 +1874,17 @@ export class PiAgent extends BaseAgent {
         'Craft Agents Backend', // backendName
         getCoAuthorPreference() // respect user's includeCoAuthoredBy preference (#576)
       );
+      const identityBlock = buildSessionIdentityBlock({
+        sessionId: this._sessionId,
+        modelId: this._model,
+        connectionSlug,
+        connectionDisplayName: connectionRecord?.name,
+        baseUrl: connectionRecord?.baseUrl,
+        protocol: connectionRecord?.customEndpoint?.api,
+        thinkingLevel: this._thinkingLevel,
+        permissionMode: this.permissionManager.getPermissionMode(),
+      });
+      const systemPrompt = baseSystemPrompt + '\n\n' + identityBlock;
 
       // Build context from sources
       const sourceContext = this.sourceManager.formatSourceState();

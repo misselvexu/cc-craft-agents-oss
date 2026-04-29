@@ -70,6 +70,7 @@ import {
 import { type ThinkingLevel } from './thinking-levels.ts';
 import { resolveRequestParams } from './profiles/resolver.ts';
 import { getModelProfile, getProviderProfile } from './profiles/registry.ts';
+import { buildSelfSessionInfo, buildSessionIdentityBlock } from './session-identity.ts';
 import type { UserIntent } from './profiles/types.ts';
 import { generateConversationSummary } from './conversation-summary.ts';
 import type { LoadedSource } from '../sources/types.ts';
@@ -601,6 +602,23 @@ export class ClaudeAgent extends BaseAgent {
       },
       queryFn: (request) => this.queryLlm(request),
       spawnSessionFn: (input) => this.preExecuteSpawnSession(input),
+      // Baseline session introspection — see session-identity.ts. Lets the
+      // get_session_info MCP tool work even when SessionManager hasn't (yet)
+      // merged its richer fn. SessionManager's later merge with labels /
+      // status / name takes precedence (mergeSessionScopedToolCallbacks is
+      // last-writer-wins on each field).
+      getSessionInfoFn: (sid) => {
+        const targetId = sid ?? sessionId;
+        if (targetId !== sessionId) return null;
+        return buildSelfSessionInfo({
+          sessionId,
+          permissionMode: this.permissionManager.getPermissionMode(),
+          workingDirectory: this.workingDirectory,
+          connectionSlug: this.config.connectionSlug ?? this.config.session?.llmConnection,
+          modelId: this._model,
+          createdAt: this.config.session?.createdAt,
+        });
+      },
     });
 
     // Start config watcher for hot-reloading source changes
@@ -931,21 +949,38 @@ export class ClaudeAgent extends BaseAgent {
         // System prompt configuration:
         // - Mini agents: Use custom (lean) system prompt without Claude Code preset
         // - Normal agents: Append to Claude Code's system prompt (recommended by docs)
+        //
+        // The session identity block at the end gives the agent a stable
+        // place to read its own model / connection / endpoint without
+        // needing to call get_session_info or Read config files. See
+        // docs/analysis/sandbox-isolation-bug.md §7.
         systemPrompt: miniConfig.enabled
           ? this.getMiniSystemPrompt()
           : {
               type: 'preset' as const,
               preset: 'claude_code' as const,
               // Working directory included for monorepo context file discovery
-              append: getSystemPrompt(
-                this.pinnedPreferencesPrompt ?? undefined,
-                this.config.debugMode,
-                this.workspaceRootPath,
-                this.config.session?.workingDirectory,
-                undefined, // preset
-                undefined, // backendName
-                this.pinnedIncludeCoAuthoredBy ?? undefined
-              ),
+              append:
+                getSystemPrompt(
+                  this.pinnedPreferencesPrompt ?? undefined,
+                  this.config.debugMode,
+                  this.workspaceRootPath,
+                  this.config.session?.workingDirectory,
+                  undefined, // preset
+                  undefined, // backendName
+                  this.pinnedIncludeCoAuthoredBy ?? undefined,
+                ) +
+                '\n\n' +
+                buildSessionIdentityBlock({
+                  sessionId,
+                  modelId: this._model,
+                  connectionSlug: this.config.connectionSlug ?? defaultConn?.slug,
+                  connectionDisplayName: defaultConn?.name,
+                  baseUrl: defaultConn?.baseUrl,
+                  protocol: providerProfile.protocol,
+                  thinkingLevel: this._thinkingLevel,
+                  permissionMode: this.permissionManager.getPermissionMode(),
+                }),
             },
         // Use sdkCwd for SDK session storage - this is set once at session creation and never changes.
         // This ensures SDK can always find session transcripts regardless of workingDirectory changes.
